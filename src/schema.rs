@@ -1,4 +1,3 @@
-
 table! {
     todo (id) {
         id -> Int4,
