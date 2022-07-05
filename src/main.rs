@@ -1,17 +1,10 @@
 use crate::schema::todo;
-// use diesel::sql_types::Json;
 use diesel::prelude::*;
 use diesel::{Insertable, PgConnection, Queryable};
 use rocket::serde::json::Json;
-use rocket_sync_db_pools::database;
-// use rocket::serde::{json::Json, Deserialize, Serialize};
 use rocket::serde::{Deserialize, Serialize};
 use rocket::{get, launch, post, routes};
-// use rocket_contrib::databases::{database, diesel::PgConnection};
-// use serde_derive::{json::Json, Deserialize, Serialize};
-// use serde::{json::Json, Deserialize, Serializer};
-// #[macro_use]
-// extern crate rocket;
+use rocket_sync_db_pools::database;
 
 #[database("myDb")]
 struct DbConn(PgConnection);
@@ -21,7 +14,6 @@ extern crate diesel;
 
 mod schema;
 
-// #[serde(crate = "rocket::serde")]
 #[derive(Debug, Queryable, Serialize)]
 struct Todo {
     id: i32,
@@ -35,18 +27,15 @@ struct NewTodo {
     title: String,
 }
 
-/*
 #[get("/")]
-fn index() -> &'static str {
-    "Hello, world!"
-}
+async fn get_todo(conn: DbConn) -> Json<Vec<Todo>> {
+    let todos = conn
+        .run(|c| todo::table.order(todo::columns::id.desc()).load::<Todo>(c))
+        .await
+        .unwrap();
 
-#[get("/<foo>")]
-fn foo(foo: String) -> String {
-    format!("Hello, {}!", foo)
+    Json(todos)
 }
-
-*/
 
 #[post("/todo", data = "<new_todo>")]
 async fn create_todo(conn: DbConn, new_todo: Json<NewTodo>) -> Json<Todo> {
@@ -65,5 +54,5 @@ async fn create_todo(conn: DbConn, new_todo: Json<NewTodo>) -> Json<Todo> {
 fn rocket() -> _ {
     rocket::build()
         .attach(DbConn::fairing())
-        .mount("/", routes![create_todo])
+        .mount("/", routes![get_todo, create_todo])
 }

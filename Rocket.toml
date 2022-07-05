@@ -1,0 +1,12 @@
+[debug]
+port = 3000
+
+[debug.databases]
+myDb = { url = "postgres://administrator:pass@localhost/todo" }
+
+[release]
+log_level = "debug"
+
+
+[test]
+databases = { myDb = { url = "postgres://administrator:pass@localhost/todo" } }
