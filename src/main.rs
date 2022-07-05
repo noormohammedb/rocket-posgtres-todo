@@ -1,6 +1,11 @@
 #[macro_use]
 extern crate rocket;
 
+#[macro_use]
+extern crate diesel;
+
+mod schema;
+
 #[get("/")]
 fn index() -> &'static str {
     "Hello, world!"
@@ -13,5 +18,7 @@ fn foo(foo: String) -> String {
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index, foo])
+    rocket::build()
+        .mount("/", routes![index, foo])
+        .mount("/todo", routes![])
 }
