@@ -3,7 +3,7 @@ use diesel::prelude::*;
 use diesel::{Insertable, PgConnection, Queryable};
 use rocket::serde::json::Json;
 use rocket::serde::{Deserialize, Serialize};
-use rocket::{get, launch, post, routes};
+use rocket::{get, launch, post, put, routes};
 use rocket_sync_db_pools::database;
 
 use dotenv::dotenv;
@@ -54,12 +54,28 @@ async fn create_todo(conn: DbConn, new_todo: Json<NewTodo>) -> Json<Todo> {
     Json(my_result)
 }
 
+#[put("/<id>")]
+async fn check_todo(conn: DbConn, id: i32) -> Json<Todo> {
+    let target = todo::table.filter(todo::columns::id.eq(id));
+
+    let my_result = conn
+        .run(move |db| {
+            diesel::update(target)
+                .set(todo::columns::checked.eq(true))
+                .get_result::<Todo>(db)
+        })
+        .await
+        .unwrap();
+
+    Json(my_result)
+}
+
 #[launch]
 fn rocket() -> _ {
     dotenv().ok();
     rocket::build()
         .attach(DbConn::fairing())
-        .mount("/", routes![get_todo, create_todo])
+        .mount("/", routes![get_todo, create_todo, check_todo])
 
     /*Tried to implement env PORT for listening port */
 
