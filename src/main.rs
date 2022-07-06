@@ -6,6 +6,10 @@ use rocket::serde::{Deserialize, Serialize};
 use rocket::{get, launch, post, routes};
 use rocket_sync_db_pools::database;
 
+use dotenv::dotenv;
+// use rocket::figment::{providers::Env, providers::Toml, Figment};
+// use std::env;
+
 #[database("myDb")]
 struct DbConn(PgConnection);
 
@@ -52,7 +56,24 @@ async fn create_todo(conn: DbConn, new_todo: Json<NewTodo>) -> Json<Todo> {
 
 #[launch]
 fn rocket() -> _ {
+    dotenv().ok();
     rocket::build()
         .attach(DbConn::fairing())
         .mount("/", routes![get_todo, create_todo])
+
+    /*Tried to implement env PORT for listening port */
+
+    // let figment = Figment::from(rocket::Config::default()).merge(("port", 8089));
+    // let my_port = env!("PORT", "8080");
+    // let figment = Figment::from(rocket::Config::default())
+    // .merge(Env::prefixed("ROCKET_"))
+    // .merge(Toml::from("config.toml"))
+    // .merge(("port", env::var("PORT").unwrap()))
+    // .merge(("ROCKET_DATABASES", env::var("ROCKET_DATABASES").unwrap()));
+
+    // let figment = Figment::from(rocket::Config::default()).merge(Env::prefixed("PORT").global());
+
+    // rocket::custom(figment)
+    //     .mount("/", routes![get_todo, create_todo])
+    //     .attach(DbConn::fairing())
 }
